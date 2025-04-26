@@ -1,3 +1,7 @@
+#this algorithm is also called as I. Minimum Spanning Tree (Prim's Algorithm)
+
+
+
 import sys
 
 class Graph():
