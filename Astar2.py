@@ -1,14 +1,17 @@
 practical2
 #Implement A star Algorithm for any game search problem
 
-def print_board(elements):
+
+import heapq
+
+def print_board(state):
     for i in range(9):
         if i % 3 == 0:
             print()
-        print("_" if elements[i] == -1 else elements[i], end=" ")
+        print("_" if state[i] == -1 else state[i], end=" ")
     print()
 
-def solvable(start):
+def is_solvable(start):
     inv = 0
     for i in range(9):
         if start[i] == -1:
@@ -20,149 +23,158 @@ def solvable(start):
                 inv += 1
     return inv % 2 == 0
 
-def heuristic(start, goal):
+def manhattan_distance(state, goal):
     h = 0
     for i in range(9):
-        if start[i] == -1:
+        if state[i] == -1:
             continue
-        goal_index = goal.index(start[i])
+        goal_index = goal.index(state[i])
         h += abs(i // 3 - goal_index // 3) + abs(i % 3 - goal_index % 3)
     return h
 
-def move(start, position, direction):
-    new_state = start[:]
-    if direction == 'left':
-        new_state[position], new_state[position - 1] = new_state[position - 1], new_state[position]
-    elif direction == 'right':
-        new_state[position], new_state[position + 1] = new_state[position + 1], new_state[position]
-    elif direction == 'up':
-        new_state[position], new_state[position - 3] = new_state[position - 3], new_state[position]
-    elif direction == 'down':
-        new_state[position], new_state[position + 3] = new_state[position + 3], new_state[position]
-    return new_state
+def get_neighbors(state):
+    neighbors = []
+    pos = state.index(-1)
+    row, col = pos // 3, pos % 3
 
-def solveEight(start, goal, visited, move_count):
-    if start == goal:
-        print_board(start)
-        print(f"Solved in {move_count} moves")
-        return True
+    def swap_and_store(new_pos):
+        new_state = state[:]
+        new_state[pos], new_state[new_pos] = new_state[new_pos], new_state[pos]
+        neighbors.append(new_state)
 
-    visited.add(tuple(start))
-    empty_pos = start.index(-1)
-    row, col = empty_pos // 3, empty_pos % 3
-    directions = []
+    if col > 0:
+        swap_and_store(pos - 1)
+    if col < 2:
+        swap_and_store(pos + 1)
+    if row > 0:
+        swap_and_store(pos - 3)
+    if row < 2:
+        swap_and_store(pos + 3)
 
-    if col > 0: directions.append('left')
-    if col < 2: directions.append('right')
-    if row > 0: directions.append('up')
-    if row < 2: directions.append('down')
+    return neighbors
 
-    best_heuristic = float('inf')
-    best_move = None
-    best_state = None
+def reconstruct_path(came_from, current):
+    path = [current]
+    while current in came_from:
+        current = came_from[current]
+        path.append(current)
+    return path[::-1]
 
-    for direction in directions:
-        new_state = move(start, empty_pos, direction)
-        if tuple(new_state) not in visited:
-            h = heuristic(new_state, goal)
-            if h < best_heuristic:
-                best_heuristic = h
-                best_move = direction
-                best_state = new_state
+def a_star(start, goal):
+    open_set = []
+    heapq.heappush(open_set, (manhattan_distance(start, goal), 0, start))
+    came_from = {}
+    g_score = {tuple(start): 0}
+    visited = set()
 
-    if best_move:
-        print_board(best_state)
-        visited.add(tuple(best_state))
-        return solveEight(best_state, goal, visited, move_count + 1)
-    return False
+    while open_set:
+        _, cost, current = heapq.heappop(open_set)
+        current_t = tuple(current)
 
+        if current == goal:
+            path = reconstruct_path(came_from, current_t)
+            print("\nSolved!")
+            for state in path:
+                print_board(state)
+                print()
+            print(f"Number of moves: {len(path) - 1}")
+            return
+
+        visited.add(current_t)
+
+        for neighbor in get_neighbors(current):
+            neighbor_t = tuple(neighbor)
+            tentative_g = g_score[current_t] + 1
+
+            if neighbor_t in visited and tentative_g >= g_score.get(neighbor_t, float('inf')):
+                continue
+
+            if tentative_g < g_score.get(neighbor_t, float('inf')):
+                came_from[neighbor_t] = current_t
+                g_score[neighbor_t] = tentative_g
+                f_score = tentative_g + manhattan_distance(neighbor, goal)
+                heapq.heappush(open_set, (f_score, tentative_g, neighbor))
+
+    print("No solution found.")
+
+# ========== MAIN ==========
 def main():
+    print("Enter the start state (use -1 for empty space):")
     start = []
-    goal = []
-
-    print("Enter the start state (9 numbers, use -1 for empty space):")
     while len(start) < 9:
-        try:
-            row = list(map(int, input(f"Enter row {len(start)//3 + 1} (3 numbers): ").split()))
-            if len(row) != 3:
-                print("Please enter exactly 3 numbers.")
-                continue
-            start.extend(row)
-        except ValueError:
-            print("Invalid input. Please enter integers.")
+        row = list(map(int, input(f"Row {len(start) // 3 + 1} (3 values): ").split()))
+        if len(row) != 3:
+            print("Please enter exactly 3 numbers.")
+            continue
+        start.extend(row)
 
-    print("Enter the goal state (9 numbers, use -1 for empty space):")
+    print("Enter the goal state (use -1 for empty space):")
+    goal = []
     while len(goal) < 9:
-        try:
-            row = list(map(int, input(f"Enter row {len(goal)//3 + 1} (3 numbers): ").split()))
-            if len(row) != 3:
-                print("Please enter exactly 3 numbers.")
-                continue
-            goal.extend(row)
-        except ValueError:
-            print("Invalid input. Please enter integers.")
+        row = list(map(int, input(f"Row {len(goal) // 3 + 1} (3 values): ").split()))
+        if len(row) != 3:
+            print("Please enter exactly 3 numbers.")
+            continue
+        goal.extend(row)
 
-    print("Start State:")
+    print("\nStart State:")
     print_board(start)
 
-    print("Goal State:")
+    print("\nGoal State:")
     print_board(goal)
 
-    if solvable(start):
-        visited = set()
-        if not solveEight(start, goal, visited, 0):
-            print("No solution found.")
+    if is_solvable(start):
+        a_star(start, goal)
     else:
-        print("Not possible to solve")
+        print("The given puzzle is not solvable.")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
 
+Output:
 
-output :
-tanishka@tanishka-Latitude-5490:~$ python3 astar2.py
-Enter the start state (9 numbers, use -1 for empty space):
-Enter row 1 (3 numbers): 3 7 6 
-Enter row 2 (3 numbers): 5 1 2
-Enter row 3 (3 numbers): 4 -1 8
-Enter the goal state (9 numbers, use -1 for empty space):
-Enter row 1 (3 numbers): 5 3 6
-Enter row 2 (3 numbers): 7 -1 2
-Enter row 3 (3 numbers): 4 1 8
+Enter the start state (use -1 for empty space):     
+Row 1 (3 values): 1 2 3 
+Row 2 (3 values): 4 -1 6
+Row 3 (3 values): 7 5 8 
+Enter the goal state (use -1 for empty space):
+Row 1 (3 values): 1 2 3 
+Row 2 (3 values): 4 5 6 
+Row 3 (3 values): 7 8 -1
+
 Start State:
 
-3 7 6 
-5 1 2 
-4 _ 8 
+1 2 3
+4 _ 6
+7 5 8
+
 Goal State:
 
-5 3 6 
-7 _ 2 
-4 1 8 
+1 2 3
+4 5 6
+7 8 _
 
-3 7 6 
-5 _ 2 
-4 1 8 
+Solved!
 
-3 _ 6 
-5 7 2 
-4 1 8 
+1 2 3
+4 _ 6
+7 5 8
 
-_ 3 6 
-5 7 2 
-4 1 8 
 
-5 3 6 
-_ 7 2 
-4 1 8 
+1 2 3
+4 5 6
+7 _ 8
 
-5 3 6 
-7 _ 2 
-4 1 8 
 
-5 3 6 
-7 _ 2 
-4 1 8 
-Solved in 5 moves
-tanishka@tanishka-Latitude-5490:~$ 
+1 2 3
+4 5 6
+7 8 _
+
+Number of moves: 2
+
+   
+
+
+
+
 
