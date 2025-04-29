@@ -19,19 +19,17 @@ def selectionSort(arr):
         arr[i], arr[min_idx] = arr[min_idx], arr[i]
     return arr
 
-def main():
-    try:
-        user_input = input("Enter numbers separated by spaces: ")
-        arr = list(map(int, user_input.split()))
-        print("Original list:", arr)
-        sorted_arr = selectionSort(arr)
-        print("Sorted list:", sorted_arr)
-    except ValueError:
-        print("Please enter valid integers.")
+# Main program
+numbers = input("Enter numbers separated by spaces: ")
+arr = []  # Empty list to store integers
 
-if __name__ == "__main__":
-    main()
+# Convert each input string to an integer using a loop
+for num in numbers.split():
+    arr.append(int(num))
 
+print("Original list:", arr)
+sorted_arr = selectionSort(arr)
+print("Sorted list:", sorted_arr)
 
 
 output :
