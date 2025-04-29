@@ -1,0 +1,98 @@
+import math
+import heapq
+
+class Vertex:
+    def __init__(self, x=0, y=0):
+        self.x = x
+        self.y = y
+
+class Graph:
+    def __init__(self, V):
+        self.vertices = V
+        self.adjMatrix = [[-1 for _ in range(V)] for _ in range(V)]
+        self.vertexCoordinates = [Vertex() for _ in range(V)]
+
+    def addEdge(self, src, dest, weight):
+        if 0 <= src < self.vertices and 0 <= dest < self.vertices:
+            self.adjMatrix[src][dest] = weight
+            self.adjMatrix[dest][src] = weight
+        else:
+            print(f"Invalid edge from {src} to {dest}")
+
+    def setCoordinates(self, node, x, y):
+        if 0 <= node < self.vertices:
+            self.vertexCoordinates[node] = Vertex(x, y)
+
+    def getX(self, node):
+        return self.vertexCoordinates[node].x
+
+    def getY(self, node):
+        return self.vertexCoordinates[node].y
+
+    def heuristic(self, node, goal):
+        x1, y1 = self.getX(node), self.getY(node)
+        x2, y2 = self.getX(goal), self.getY(goal)
+        return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
+    def AStar(self, start, goal):
+        g = [math.inf] * self.vertices
+        h = [self.heuristic(i, goal) for i in range(self.vertices)]
+        f = [math.inf] * self.vertices
+        visited = [False] * self.vertices
+        parent = [-1] * self.vertices
+
+        g[start] = 0
+        f[start] = h[start]
+        pq = [(f[start], start)]
+
+        while pq:
+            currentF, currentNode = heapq.heappop(pq)
+            if visited[currentNode]:
+                continue
+            visited[currentNode] = True
+            if currentNode == goal:
+                break
+
+            for i in range(self.vertices):
+                if self.adjMatrix[currentNode][i] != -1 and not visited[i]:
+                    tentativeG = g[currentNode] + self.adjMatrix[currentNode][i]
+                    if tentativeG < g[i]:
+                        g[i] = tentativeG
+                        f[i] = g[i] + h[i]
+                        parent[i] = currentNode
+                        heapq.heappush(pq, (f[i], i))
+
+        if visited[goal]:
+            print(f"\nShortest path cost from {start} to {goal}: {g[goal]}")
+            print("Path:", end=" ")
+            path = []
+            pathNode = goal
+            while pathNode != -1:
+                path.append(pathNode)
+                pathNode = parent[pathNode]
+            print(" -> ".join(map(str, reversed(path))))
+        else:
+            print("No path found.")
+
+# ========== MAIN ==========
+if __name__ == "__main__":
+    V = int(input("Enter number of vertices: "))
+    g = Graph(V)
+
+    print("\nEnter coordinates for each vertex:")
+    for i in range(V):
+        x = int(input(f"Vertex {i} - X coordinate: "))
+        y = int(input(f"Vertex {i} - Y coordinate: "))
+        g.setCoordinates(i, x, y)
+
+    E = int(input("\nEnter number of edges: "))
+    print("Enter each edge as: source destination weight")
+    for _ in range(E):
+        src, dest, weight = map(int, input().split())
+        g.addEdge(src, dest, weight)
+
+    start = int(input("\nEnter start vertex: "))
+    goal = int(input("Enter goal vertex: "))
+
+    print("\nRunning A* Algorithm...\n")
+    g.AStar(start, goal)
