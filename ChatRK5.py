@@ -15,22 +15,25 @@ response_dict = {
     "contact": "You can reach us at support@ourcompany.com or call us at 123-456-7890."
 }
 
-# Function to handle customer interaction
-def chatbot():
-    print("Hello, welcome to our customer service chatbot! Type 'goodbye' to exit.")
-    while True:
-        # Get user input (customer's query)
-        user_input = input("You: ").lower().strip()  # Convert to lowercase for consistency
+cust_dict = {
+    "Hi": "Hello, how are you?",
+    "Hello": "How may I help you?",
+    "What's your name?": "I'm ChatBot!",
+    "How are you?": "I'm just a bunch of code, but I'm doing fine!",
+    "What can you do?": "I can chat with you and answer basic questions.",
+    "Bye": "Goodbye! Have a great day!"
+}
 
-        # Check if the input matches a key in the response dictionary
-        if user_input in response_dict:
-            print(f"Bot: {response_dict[user_input]}")
-        else:
-            print("Bot: Sorry, I didn't understand that. Can you please ask something else?")
+def chatbot(user_input):
+    if user_input in cust_dict:
+        print(cust_dict[user_input])
+    else:
+        print("I'm sorry, I don't understand that.")
 
-        # Exit condition
-        if user_input == "goodbye":
-            break
-
-# Run the chatbot
-chatbot()
+# Chat loop
+while True:
+    strt = input("Enter your Response: ")
+    chatbot(strt)
+   
+    if strt == "Bye":
+        break
