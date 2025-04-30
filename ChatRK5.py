@@ -1,5 +1,5 @@
 # Define the dictionary with sample customer queries as keys and bot responses as values
-response_dict = {
+cust_dict = {
     "hello": "Hi! Welcome to our customer support. How can I assist you today?",
     "hi": "Hello! How can I help you today?",
     "how are you": "I'm just a bot, but I'm happy to assist you!",
@@ -15,14 +15,7 @@ response_dict = {
     "contact": "You can reach us at support@ourcompany.com or call us at 123-456-7890."
 }
 
-cust_dict = {
-    "Hi": "Hello, how are you?",
-    "Hello": "How may I help you?",
-    "What's your name?": "I'm ChatBot!",
-    "How are you?": "I'm just a bunch of code, but I'm doing fine!",
-    "What can you do?": "I can chat with you and answer basic questions.",
-    "Bye": "Goodbye! Have a great day!"
-}
+
 
 def chatbot(user_input):
     if user_input in cust_dict:
